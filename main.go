@@ -33,7 +33,7 @@ func handleDnsRequest(w dns.ResponseWriter, r *dns.Msg, qdns *QuickDNSResolver) 
 	case dns.OpcodeQuery:
 		parseQuery(m, qdns)
 	}
-	w.WriteMsg(m)
+	_ = w.WriteMsg(m)
 }
 
 func main() {
@@ -51,8 +51,14 @@ func main() {
 	server := &dns.Server{Addr: ":" + strconv.Itoa(port), Net: "udp"}
 	log.Printf("Starting at %d\n", port)
 	err = server.ListenAndServe()
-	defer server.Shutdown()
 	if err != nil {
 		log.Fatalf("Failed to start server: %s\n ", err.Error())
 	}
+	// defer shutdown
+	defer func() {
+		err := server.Shutdown()
+		if err != nil {
+			log.Fatalf("Failed to shutdown server: %s\n ", err.Error())
+		}
+	}()
 }
