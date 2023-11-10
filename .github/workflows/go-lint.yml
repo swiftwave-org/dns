@@ -1,0 +1,68 @@
+name: Golang Lint CI
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  gofmt-unix:
+    strategy:
+      matrix:
+        go: ["1.21.3"]
+        os: [macos-latest, ubuntu-latest]
+    name: gofmt
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: ${{ matrix.go }}
+          cache: true
+      - name: Run format checks
+        run: |
+          if [ $(gofmt -d -l -e . | wc -l) -eq 0 ]; then
+              printf 'Format Checks Have Passed!!!'
+          else
+              printf 'Format Checks Have Failed!\nPlease use gofmt in your system to format your code.'
+              gofmt -l -e -d . 
+              exit 1 
+          fi
+  golangci:
+    strategy:
+      matrix:
+        go: ["1.21.3"]
+        os: [macos-latest, ubuntu-latest]
+    name: lint
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: ${{ matrix.go }}
+          cache: true
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: v1.54
+          args: --timeout 10m
+      - name: Verify dependencies
+        run: go mod verify
+
+      - name: Build
+        run: go build -v ./...
+
+      - name: Run go vet
+        run: go vet ./...
+
+      - name: Install staticcheck
+        run: go install honnef.co/go/tools/cmd/staticcheck@latest
+
+      - name: Run staticcheck
+        run: staticcheck ./...
