@@ -19,6 +19,11 @@ func TestResolveARecord(t *testing.T) {
 		{"ip-10-0-0-1.swiftwave.xyz.", true, "10.0.0.1"},
 		{"ip-256-0-0-1.swiftwave.xyz.", false, ""},
 		{"ip-192-168-1.swiftwave.xyz.", false, ""},
+		{"x.ip-10-0-0-1.swiftwave.xyz.", true, "10.0.0.1"},
+		{"abcd.ip-10-0-0-1.swiftwave.xyz.", true, "10.0.0.1"},
+		{"xyz.abcd.ip-10-0-0-1.swiftwave.xyz.", true, "10.0.0.1"},
+		{"xyz.abcdip-10-0-0-1.swiftwave.xyz.", false, ""},
+		{"xyzabcdip-10-0-0-1.swiftwave.xyz.", false, ""},
 	}
 
 	for _, test := range tests {
