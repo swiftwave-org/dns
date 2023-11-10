@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 
 	"github.com/miekg/dns"
@@ -47,8 +48,11 @@ func main() {
 		handleDnsRequest(w, m, qdns)
 	})
 	// start server
-	port := 5555
-	server := &dns.Server{Addr: ":" + strconv.Itoa(port), Net: "udp"}
+	port := os.Getenv("PORT")
+	if port == "" {
+		panic("PORT env variable not set")
+	}
+	server := &dns.Server{Addr: ":" + port, Net: "udp"}
 	log.Printf("Starting at %d\n", port)
 	err = server.ListenAndServe()
 	if err != nil {
