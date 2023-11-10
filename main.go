@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 
 	"github.com/miekg/dns"
 )
@@ -50,10 +49,11 @@ func main() {
 	// start server
 	port := os.Getenv("PORT")
 	if port == "" {
-		panic("PORT env variable not set")
+		port = "53"
+		log.Printf("Defaulting to port %s", port)
 	}
 	server := &dns.Server{Addr: ":" + port, Net: "udp"}
-	log.Printf("Starting at %d\n", port)
+	log.Printf("Starting at %s\n", port)
 	err = server.ListenAndServe()
 	if err != nil {
 		log.Fatalf("Failed to start server: %s\n ", err.Error())
