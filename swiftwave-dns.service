@@ -1,0 +1,10 @@
+[Unit]
+Description=Swiftwave DNS
+After=multi-user.target
+
+[Service]
+ExecStart=/usr/bin/swiftwave-dns
+Type=simple
+
+[Install]
+WantedBy=multi-user.target
