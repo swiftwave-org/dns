@@ -47,6 +47,11 @@ func main() {
 		handleDnsRequest(w, m, qdns)
 	})
 	// start server
+	address := os.Getenv("ADDRESS")
+	if address == "" {
+		address = "0.0.0.0"
+		log.Printf("Defaulting to address %s", address)
+	}
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "53"
