@@ -11,6 +11,16 @@ import (
 func parseQuery(m *dns.Msg, qdns *QuickDNSResolver) {
 	for _, q := range m.Question {
 		switch q.Qtype {
+		case dns.TypeAAAA:
+			{
+				isQDNS, ip := qdns.ResolveARecord(q.Name)
+				if isQDNS {
+					rr, err := dns.NewRR(fmt.Sprintf("%s AAAA %s", q.Name, ip))
+					if err == nil {
+						m.Answer = append(m.Answer, rr)
+					}
+				}
+			}
 		case dns.TypeA:
 			{
 				isQDNS, ip := qdns.ResolveARecord(q.Name)
@@ -19,6 +29,18 @@ func parseQuery(m *dns.Msg, qdns *QuickDNSResolver) {
 					if err == nil {
 						m.Answer = append(m.Answer, rr)
 					}
+				}
+			}
+		case dns.TypeNS:
+			{
+				// ns1.swiftwave.xyz and ns2.swiftwave.xyz
+				rr, err := dns.NewRR(fmt.Sprintf("%s NS ns1.swiftwave.xyz", q.Name))
+				if err == nil {
+					m.Answer = append(m.Answer, rr)
+				}
+				rr, err = dns.NewRR(fmt.Sprintf("%s NS ns2.swiftwave.xyz", q.Name))
+				if err == nil {
+					m.Answer = append(m.Answer, rr)
 				}
 			}
 		}
