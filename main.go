@@ -10,23 +10,14 @@ import (
 
 func parseQuery(m *dns.Msg, qdns *QuickDNSResolver) {
 	for _, q := range m.Question {
-		println(q.Name, q.Qtype)
+		println("Query: ", q.Name, q.Qtype, q.Qclass)
 		switch q.Qtype {
 		case dns.TypeNone:
 			fallthrough
 		case dns.TypeANY:
 			fallthrough
 		case dns.TypeNS:
-			fallthrough
-		case dns.TypeA:
 			{
-				isQDNS, ip := qdns.ResolveARecord(q.Name)
-				if isQDNS {
-					rr, err := dns.NewRR(fmt.Sprintf("%s A %s", q.Name, ip))
-					if err == nil {
-						m.Answer = append(m.Answer, rr)
-					}
-				}
 				// ns1.swiftwave.xyz and ns2.swiftwave.xyz
 				rr, err := dns.NewRR(fmt.Sprintf("%s NS ns1.swiftwave.xyz", q.Name))
 				if err == nil {
@@ -35,6 +26,16 @@ func parseQuery(m *dns.Msg, qdns *QuickDNSResolver) {
 				rr, err = dns.NewRR(fmt.Sprintf("%s NS ns2.swiftwave.xyz", q.Name))
 				if err == nil {
 					m.Answer = append(m.Answer, rr)
+				}
+			}
+		case dns.TypeA:
+			{
+				isQDNS, ip := qdns.ResolveARecord(q.Name)
+				if isQDNS {
+					rr, err := dns.NewRR(fmt.Sprintf("%s A %s", q.Name, ip))
+					if err == nil {
+						m.Answer = append(m.Answer, rr)
+					}
 				}
 			}
 		}
@@ -59,7 +60,7 @@ func main() {
 		panic(err)
 	}
 	// attach request handler func
-	dns.HandleFunc("swiftwave.xyz", func(w dns.ResponseWriter, m *dns.Msg) {
+	dns.HandleFunc(".", func(w dns.ResponseWriter, m *dns.Msg) {
 		handleDnsRequest(w, m, qdns)
 	})
 	// start server
