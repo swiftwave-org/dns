@@ -4,13 +4,40 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/miekg/dns"
 )
 
+func forwardToExternalDNS(q dns.Question) ([]dns.RR, error) {
+	// Query the external DNS server (e.g., 1.1.1.1)
+	client := new(dns.Client)
+	message := new(dns.Msg)
+	message.SetQuestion(q.Name, q.Qtype)
+
+	// Using 1.1.1.1 as an external resolver
+	resp, _, err := client.Exchange(message, "1.1.1.1:53")
+	if err != nil {
+		return nil, err
+	}
+	return resp.Answer, nil
+}
+
 func parseQuery(m *dns.Msg, qdns *QuickDNSResolver) {
 	for _, q := range m.Question {
 		println("Query: ", q.Name, q.Qtype, q.Qclass)
+
+		if !strings.HasSuffix(q.Name, ".swiftwave.xyz") {
+			// Query 1.1.1.1 or another DNS server and add the answer
+			answers, err := forwardToExternalDNS(q)
+			if err != nil {
+				log.Printf("Failed to forward query: %v", err)
+				return
+			}
+			m.Answer = append(m.Answer, answers...)
+			return
+		}
+
 		switch q.Qtype {
 		case dns.TypeNone:
 			fallthrough
