@@ -27,7 +27,9 @@ func parseQuery(m *dns.Msg, qdns *QuickDNSResolver) {
 	for _, q := range m.Question {
 		println("Query: ", q.Name, q.Qtype, q.Qclass)
 
-		if !strings.HasSuffix(q.Name, ".swiftwave.xyz.") {
+		queryName := strings.ToLower(q.Name)
+
+		if !strings.HasSuffix(queryName, ".swiftwave.xyz.") {
 			// Query 1.1.1.1 or another DNS server and add the answer
 			answers, err := forwardToExternalDNS(q)
 			if err != nil {
@@ -57,7 +59,7 @@ func parseQuery(m *dns.Msg, qdns *QuickDNSResolver) {
 			}
 		case dns.TypeA:
 			{
-				isQDNS, ip := qdns.ResolveARecord(q.Name)
+				isQDNS, ip := qdns.ResolveARecord(queryName)
 				if isQDNS {
 					rr, err := dns.NewRR(fmt.Sprintf("%s A %s", q.Name, ip))
 					if err == nil {

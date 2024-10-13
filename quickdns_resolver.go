@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"regexp"
-	"strings"
 )
 
 /**
@@ -32,7 +31,6 @@ func NewQuickDNSResolver() (*QuickDNSResolver, error) {
 // Returns true if the domain name is in the format ip-3-56-23-12.swiftwave.xyz
 // Also returns the IP address
 func (q *QuickDNSResolver) ResolveARecord(domain string) (bool, string) {
-	domain = strings.ToLower(domain)
 	if matches := q.Regex.FindStringSubmatch(domain); len(matches) == 5 {
 		ip := fmt.Sprintf("%s.%s.%s.%s", matches[1], matches[2], matches[3], matches[4])
 		return true, ip
