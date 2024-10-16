@@ -9,7 +9,31 @@ import (
 	"github.com/miekg/dns"
 )
 
+var whitelistedDomains = []string{
+	"github.com",
+	"nginx.com",
+}
+
+// Function to check if the domain is whitelisted
+func isWhitelistedDomain(domain string) bool {
+	for _, whitelisted := range whitelistedDomains {
+		if strings.HasSuffix(domain, whitelisted) {
+			return true
+		}
+	}
+	return false
+}
+
+// Function to forward DNS query to external DNS server
 func forwardToExternalDNS(q dns.Question) ([]dns.RR, error) {
+	// Extract the domain name from the question
+	domain := strings.TrimSuffix(q.Name, ".")
+
+	// Check if the domain is whitelisted
+	if !isWhitelistedDomain(domain) {
+		return nil, fmt.Errorf("domain %s is not whitelisted", domain)
+	}
+
 	// Query the external DNS server (e.g., 1.1.1.1)
 	client := new(dns.Client)
 	message := new(dns.Msg)
@@ -22,6 +46,7 @@ func forwardToExternalDNS(q dns.Question) ([]dns.RR, error) {
 	}
 	return resp.Answer, nil
 }
+
 
 func parseQuery(m *dns.Msg, qdns *QuickDNSResolver) {
 	for _, q := range m.Question {
