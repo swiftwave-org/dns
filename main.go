@@ -50,14 +50,16 @@ func handleDnsRequest(w dns.ResponseWriter, r *dns.Msg, qdns *QuickDNSResolver) 
 	case dns.OpcodeQuery:
 		parseQuery(m, qdns)
 	}
-	_ = w.WriteMsg(m)
+	if err := w.WriteMsg(m); err != nil {
+		log.Printf("Failed to write DNS response: %s", err.Error())
+	}
 }
 
 func main() {
 	// create quick dns resolver
 	qdns, err := NewQuickDNSResolver()
 	if err != nil {
-		panic(err)
+		log.Fatalf("Failed to create QuickDNS resolver: %s", err.Error())
 	}
 	// attach request handler func
 	dns.HandleFunc(".", func(w dns.ResponseWriter, m *dns.Msg) {
